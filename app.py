@@ -25,6 +25,24 @@ class RedTeamRequest(BaseModel):
 
 
 ########################################################
+# Root
+########################################################
+
+@app.get("/")
+def root():
+    return {
+        "message": "GA5 Q8 Red Team Running"
+    }
+
+
+@app.get("/redteam")
+def redteam_info():
+    return {
+        "message": "Use POST /redteam with a JSON request body."
+    }
+
+
+########################################################
 # Endpoint
 ########################################################
 
@@ -35,7 +53,7 @@ def redteam(req: RedTeamRequest):
 
     decision = evaluate_request(request)
 
-    # Block request
+    # Block requests
     if decision["action"] == "block":
         return {
             "action": "block",
@@ -43,7 +61,7 @@ def redteam(req: RedTeamRequest):
             "result": None
         }
 
-    # Execute file read
+    # Execute read_file
     if req.tool == "read_file":
         result = read_file(req.arguments.path)
 
@@ -53,7 +71,7 @@ def redteam(req: RedTeamRequest):
             "result": result
         }
 
-    # Execute URL fetch
+    # Execute fetch_url
     if req.tool == "fetch_url":
         result = fetch_url(req.arguments.url)
 
@@ -67,16 +85,4 @@ def redteam(req: RedTeamRequest):
         "action": "block",
         "reason": "Unknown tool.",
         "result": None
-    }
-#add
-
-
-########################################################
-# Health Check
-########################################################
-
-@app.get("/")
-def root():
-    return {
-        "message": "GA5 Q8 Red Team Running"
     }
