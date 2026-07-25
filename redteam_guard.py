@@ -1,5 +1,5 @@
 from pathlib import PurePosixPath
-from urllib.parse import urlparse, unquote
+from urllib.parse import urlparse
 import posixpath
 import ipaddress
 import socket
@@ -20,17 +20,14 @@ def normalize_path(path: str) -> PurePosixPath:
 
     path = path.strip()
 
-    while True:
-        decoded = unquote(path)
-        if decoded == path:
-            break
-        path = decoded
-
+    # Normalize Windows separators
     path = path.replace("\\", "/")
 
+    # Collapse duplicate slashes
     while "//" in path:
         path = path.replace("//", "/")
 
+    # Normalize . and .. path components
     normalized = posixpath.normpath(path)
 
     return PurePosixPath(normalized)
@@ -107,8 +104,6 @@ def check_url(url: str):
                 "reason": "Host not allowed."
             }
 
-        # Resolve DNS
-
         try:
 
             infos = socket.getaddrinfo(host, None)
@@ -124,7 +119,6 @@ def check_url(url: str):
                     or ip.is_reserved
                     or ip.is_multicast
                 ):
-
                     return {
                         "action": "block",
                         "reason": "Host resolves to private address."
@@ -157,15 +151,12 @@ def check_url(url: str):
 def evaluate_request(req: dict):
 
     tool = req.get("tool")
-
     arguments = req.get("arguments", {})
 
     if tool == "read_file":
-
         return check_file(arguments.get("path", ""))
 
     if tool == "fetch_url":
-
         return check_url(arguments.get("url", ""))
 
     return {
